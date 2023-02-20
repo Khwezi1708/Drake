@@ -6,7 +6,9 @@ The energy distribution over Drake's albums is shown in figure 1. ![Fig 1](https
 
 It is visible that his albums do not have a set energy distribution, it is quite varied. The albums 'Her Loss' and 'What A Time To Be Alive' seem to follow a balanced distribution, whereas 'Thank Me Later (Int'l Version)' has more of a build up of energies. 
 
-Figure 2 then shows the distribution of Drake's album based off of their computed average popularity and danceability.The size of these data points represents the average energy. ![Fig 2](https://github.com/Khwezi1708/Drake/blob/main/dancepop.png) 
+Figure 2 then shows the distribution of Drake's album based off of their computed average popularity and danceability. The size of these data points represents the average energy. 
+
+![Fig 2](https://github.com/Khwezi1708/Drake/blob/main/dancepop.png) 
 
 The album 'Thank Me Later (Int'l Version)' has the lowest popularity and dancebility, yet has the highest energy. 
 
