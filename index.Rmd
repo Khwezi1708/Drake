@@ -1,0 +1,50 @@
+---
+title: "index.Rmd"
+author: "Khwezi Rasmussen"
+date: "2023-02-15"
+output: 
+  flexdashboard::flex_dashboard:
+    storyboard: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(spotifyr)
+library (dplyr)
+```
+
+```{r include = FALSE}
+Sys.setenv(SPOTIFY_CLIENT_ID='222b718afde2416ebfa1fd7a64fd9533')
+Sys.setenv(SPOTIFY_CLIENT_SECRET='9d69929e765449a98285f1b9fe10f380')
+access_token <- get_spotify_access_token()
+
+playlist_id <- '0OUz3M510N4p6ATGFEdE6p'
+albums <- get_playlist_audio_features('',playlist_id)
+```
+
+## Plots
+The energy distribution over Drake's albums is shown in figure 1. It is visible that his albums do not have a set energy distribution, it is quite varied. The albums 'Her Loss' and 'What A Time To Be Alive' seem to follow a balanced distribution, whereas 'Thank Me Later (Int'l Version)' has more of a build up of energies. 
+
+
+```{r energy, echo=FALSE}
+
+```
+
+Figure 2 then shows the distribution of Drake's album based off of their computed average popularity and danceability. The size of these data points represents the average energy. The album 'Thank Me Later (Int'l Version)' has the lowest popularity and dancebility, yet has the highest energy.
+
+```{r dancepop, echo=FALSE}
+
+```
+
+Figure 3 shows the computed average danceability and the average energy. This plot shows that albums with a higher average energy tend to have a lower average danceability. This trend would be seen better if the data points were ordered, as shown in figure 4. 
+
+```{r dancergy, echo=FALSE}
+
+```
+
+```{r sorted_dancergy, echo=FALSE}
+
+```
+
+It is interesting to see that the high energy albums seem to generally have a lower danceability. The lower energy songs tend to have a higher popularity and danceability. The album 'Her Loss' particularly has the highest average popularity and is one of the higher scoring albums in terms of average danceability. The majority of Drake's albums seem to have an average danceability between 0.6 and 0.75, with their computed average popularity ranging from 55 to 75.
