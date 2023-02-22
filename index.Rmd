@@ -23,6 +23,16 @@ playlist_id <- '0OUz3M510N4p6ATGFEdE6p'
 albums <- get_playlist_audio_features('',playlist_id)
 ```
 
+```{r variables, include = FALSE}
+summaries <- albums %>%
+  group_by(track.album.name) %>%
+  summarise(
+    mean_popularity = mean(track.popularity),
+    mean_danceability = mean(danceability),
+    mean_energy = mean(energy)
+    )
+```
+
 ## Plots
 The energy distribution over Drake's albums is shown in figure 1. It is visible that his albums do not have a set energy distribution, it is quite varied. The albums 'Her Loss' and 'What A Time To Be Alive' seem to follow a balanced distribution, whereas 'Thank Me Later (Int'l Version)' has more of a build up of energies. 
 
