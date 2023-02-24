@@ -1,18 +1,26 @@
 ---
-title: "index.Rmd"
+title: "Drake"
 author: "Khwezi Rasmussen"
 date: "2023-02-15"
 output: 
   flexdashboard::flex_dashboard:
-    storyboard: false
+    storyboard: true
+    orientation: columns
+    theme:
+      version: 4
+      bootswatch: minty
+    
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(spotifyr)
 library (dplyr)
+library(shiny)
 ```
+
 
 ```{r include = FALSE}
 Sys.setenv(SPOTIFY_CLIENT_ID='222b718afde2416ebfa1fd7a64fd9533')
@@ -31,30 +39,147 @@ summaries <- albums %>%
     mean_danceability = mean(danceability),
     mean_energy = mean(energy)
     )
+
 ```
+Introduction
+===================
 
-## Plots
-The energy distribution over Drake's albums is shown in figure 1. It is visible that his albums do not have a set energy distribution, it is quite varied. The albums 'Her Loss' and 'What A Time To Be Alive' seem to follow a balanced distribution, whereas 'Thank Me Later (Int'l Version)' has more of a build up of energies. 
+Backstory{data-width=750}
+-------------------
 
+<center> <h1>If You're Reading This, It's Not Too Late </h1>
+
+Welcome to my storyboard that will discuss some interesting highlights regarding Drake's albums and songs featured in them. Drake has reinvented himself many times. How has his style changed over time? I shall look at the audio features for each major album, and cluster them into distinct style periods. My chosen corpus consists of music by the Canadian rapper Drake. Drake has been one of my favourite artists for several years. He has has also consistently been my number one listened to artist, according to Spotify. The interesting thing about Drake is that he always bring out albums that are true to himself, but also releases music that is out of his comfort zone. Therefore, the comparison points in my corpus will be a select number of his albums and mixtapes. Drake is well-known for expressing his emotions in his music and I expect the results to project this as well. This means that some albums will concern the concept of love and heartbreak, while others would focus more on a bachelor lifestyle. In addition, I think that Drake makes bolder moves over the years regarding his rapping style and music genres he indulges himself in. I expect a lot of variance in the danceability, energy, speechiness and valence across the albums. Drake is also known for making a lot of hits. It will be interesting to find his most popular songs and see why they gained popularity and how they differ from one another. What are the requirements for Drake to make a hit?
+</center>
+
+Album names{data-width=250}
+-------------------
+<center> 
+<h1>Albums</h1>
+
+Care Package
+
+Certified Lover Boy
+
+Dark Lane Demo Tapes
+
+Her Loss
+
+Honestly, Nevermind
+
+If You're Reading This It's Too Late
+
+More Life
+
+Nothing Was The Same (Deluxe)
+
+Scorpion
+
+So Far Gone
+
+Take Care (Deluxe)
+
+Thank Me Later (Int'l Version)
+
+Views
+
+What A Time To Be Alive
+
+</center>
+
+
+
+Albums{.storyboard}
+===================
+
+
+### Energy
 
 ```{r energy, echo=FALSE}
+energy <-
+  ggplot(albums, aes(x = energy, color = '#c8f7e7')) +
+  geom_histogram(binwidth = 0.1) +
+  facet_wrap(~track.album.name, scales = "free_x") + theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) + labs(title = "Drake album energies")
+energy
 
 ```
 
-Figure 2 then shows the distribution of Drake's album based off of their computed average popularity and danceability. The size of these data points represents the average energy. The album 'Thank Me Later (Int'l Version)' has the lowest popularity and dancebility, yet has the highest energy.
+---
 
-```{r dancepop, echo=FALSE}
+The energy distribution over Drake's albums is shown in this plot. It is visible that his albums do not have a set energy distribution, it is quite varied. The albums 'Her Loss' and 'What A Time To Be Alive' seem to follow a balanced distribution, whereas 'Thank Me Later (Int'l Version)' has more of a build up of energies. 
+
+### Dancergy
+
+```{r dancergy, echo=FALSE, fig.show="hold", out.width="50%"}
+dancergy <-  
+  ggplot(summaries, aes(x = mean_danceability, y = mean_energy, color = track.album.name)) + 
+  geom_point() +scale_x_continuous(breaks=seq(0.5,0.8,0.05)) +
+  labs(x ='Average Danceability', y = 'Average Energy', title = 'Danceability of Drake albums and their energy',
+       colour = "Albums") +
+  theme(panel.background = element_rect(fill = "white", colour = NA,
+                                        size = 2, linetype = "solid"),
+        panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                        colour = "#E6E6EA"),
+        legend.key = element_rect(fill = NA, color = NA))
+
+dancergy + geom_smooth(aes(group=1), color = "#E6E6EA", fill = NA, size = .4)
 
 ```
 
-Figure 3 shows the computed average danceability and the average energy. This plot shows that albums with a higher average energy tend to have a lower average danceability. This trend would be seen better if the data points were ordered, as shown in figure 4. 
+---
 
-```{r dancergy, echo=FALSE}
+This plot shows the computed average danceability and the average energy. The general trend of this plot is that albums with a higher average energy tend to have a lower average danceability. The lower energy songs tend to have a higher daneceability. It is interesting to see that a single outlier for this would be the **Take Care** album. This album in particular contains the lowest average energy and the lowest average danceability. The album **Thank Me Later** has the highest average energy and has the lowest average danceability. **More Life** on the other hand has the lowest average energy and one of the highest average danceability. The majority of Drake's albums seem to have an average danceability between 0.6 and 0.75, with their computed average energy ranging from 0.5 to 0.6.
+
+
+### More Life vs Thank Me Later
+```{r thanklife, echo = FALSE}
+
+thanklife <- albums %>%
+  select(track.album.name, key)%>%
+  group_by(track.album.name, key)%>%
+  filter(track.album.name %in% c("Thank Me Later (Int'l Version)", "More Life")) %>%
+  mutate(n=n())%>%
+  unique()%>%
+  group_by(key)%>%
+  mutate(total=sum(n))%>%
+  mutate(percent=round((n/total)*100))
+
+  
+thanklife |> ggplot(aes(x=factor(key), fill=track.album.name, y = n, 
+                                text = paste("Number of Songs: ", n, "<br>",
+                                             "Percent Songs in Key: ", percent, "%")))+
+  geom_bar(width=0.5, stat = "identity") +
+  scale_fill_manual(values=c('#00acdf', '#e35349'))+
+  labs(x="Key", y="Number of Songs") +
+  guides(fill=guide_legend(title="Playlist"))+
+  theme_minimal() +
+  ggtitle("Musical Key Makeup by Playlist")  
+  
+```
+
+---
+
+The dancergy plot showed us that Thank Me Later is the album with the highest energy and lowest danceability, whereas the album with the lowest energy and a high danceability is More Life. This plot shows the distribution of keys between these two extreme albums. It is visible that More Life makes use of all the keys found in a pitch class. Thank Me Later on the other hand mainly uses the keys in the range of 6 to 9. What is noticable is that most of the More Life songs are in keys 1, 7 and 11. Keys 1 and 11 specifically are not to me found in Take Me Later. 
+
+### Diamonds Dancing
+
+```{r dancealive, echo=FALSE}
+dance_alive<- albums %>%
+  filter(track.album.name == 'What A Time To Be Alive') %>%
+  select(track.name, danceability) %>%
+  arrange(danceability)
+
+ggplot(dance_alive,aes(x= track.name,y = danceability),) +
+  geom_bar(aes(fill = track.name),stat = 'identity',show.legend = FALSE) + 
+  coord_flip() + theme_minimal() +
+  labs(y ='Danceability', x = 'Track Name', title = 'Danceability of What A Time To Be Alive')
 
 ```
 
-```{r sorted_dancergy, echo=FALSE}
+---
 
-```
+Here the distribution of Drake's album What A Time To Be Alive is shown over the songs. The majority of the songs have a danceability of 0.7, with the exception of **Diamonds Dancing**. This song ranks the lowest on the danceability bar with a value of 0.5. 
 
-It is interesting to see that the high energy albums seem to generally have a lower danceability. The lower energy songs tend to have a higher popularity and danceability. The album 'Her Loss' particularly has the highest average popularity and is one of the higher scoring albums in terms of average danceability. The majority of Drake's albums seem to have an average danceability between 0.6 and 0.75, with their computed average popularity ranging from 55 to 75.
+
+Songs{.storyboard}
+===================
