@@ -2,7 +2,7 @@
 title: "Drake"
 author: "Khwezi Rasmussen"
 date: "2023-02-15"
-output: 
+output:
   flexdashboard::flex_dashboard:
     storyboard: true
     orientation: columns
@@ -19,6 +19,7 @@ library(tidyverse)
 library(spotifyr)
 library (dplyr)
 library(shiny)
+library(compmus)
 ```
 
 
@@ -151,9 +152,9 @@ thanklife |> ggplot(aes(x=factor(key), fill=track.album.name, y = n,
   geom_bar(width=0.5, stat = "identity") +
   scale_fill_manual(values=c('#00acdf', '#e35349'))+
   labs(x="Key", y="Number of Songs") +
-  guides(fill=guide_legend(title="Playlist"))+
+  guides(fill=guide_legend(title="Album"))+
   theme_minimal() +
-  ggtitle("Musical Key Makeup by Playlist")  
+  ggtitle("Musical Key Makeup by Album")  
   
 ```
 
@@ -183,3 +184,76 @@ Here the distribution of Drake's album What A Time To Be Alive is shown over the
 
 Songs{.storyboard}
 ===================
+
+
+### Rich Flex
+
+```{r richflexchroma, echo=FALSE}
+rich_flex <-
+  get_tidy_audio_analysis("1bDbXMyjaUIooNwFE9wn0N") |>
+  select(segments) |>
+  unnest(segments) |>
+  select(start, duration, pitches)
+
+rich_flex |>
+  # norm for the chroma vectors
+  mutate(pitches = map(pitches, compmus_normalise, "chebyshev")) |>
+  #convert data to long format
+  compmus_gather_chroma() |> 
+  ggplot(aes(
+    x = start + duration / 2,
+    width = duration,
+    y = pitch_class,
+    fill = value)) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  theme_minimal() +
+  scale_fill_viridis_c()
+
+```
+
+---
+A chromagram represents the time against the pitch classes. It shows the measurement of the energy per pitch class. This chromagram shows the analysis of Drake's currently most popular song **Rich Flex**. The normalisation vector used here was chebyshev. The choice for this is simple: because Spotify also does so. In my opinion it is better to keep the method of analysis as close to Spotify's handling as possible. What is clear from this visualisation is that the C#/Db note is found throughout the majority of the song. Notes G and F#/Gb show more presence after around 120s. The A#/Bb note is hardly detected, while the B note shows a little more presence,  but not much. The rest of the notes are quite spread through the song.
+
+<!-- ### Best I Ever Had -->
+
+<!-- ```{r best, echo=FALSE} -->
+
+
+<!-- # from album 'so far gone' -->
+<!-- best_i_ever_had_sfg <- -->
+<!--   get_tidy_audio_analysis("3QLjDkgLh9AOEHlhQtDuhs") |> -->
+<!--   select(segments) |> -->
+<!--   unnest(segments) |> -->
+<!--   select(start, duration, pitches) -->
+
+<!-- # from album 'thank me later -->
+<!-- best_i_ever_had_tml <- -->
+<!--   get_tidy_audio_analysis("1GxHeBvQ9935Dd3cSfsfBa") |> -->
+<!--   select(segments) |> -->
+<!--   unnest(segments) |> -->
+<!--   select(start, duration, pitches) -->
+
+<!-- compmus_long_distance( -->
+<!--   best_i_ever_had_sfg |> mutate(pitches = map(pitches, compmus_normalise, "chebyshev")), -->
+<!--   best_i_ever_had_tml |> mutate(pitches = map(pitches, compmus_normalise, "chebyshev")), -->
+<!--   feature = pitches, -->
+<!--   method = "euclidean" -->
+<!-- ) |> -->
+<!--   ggplot( -->
+<!--     aes( -->
+<!--       x = xstart + xduration / 2, -->
+<!--       width = xduration, -->
+<!--       y = ystart + yduration / 2, -->
+<!--       height = yduration, -->
+<!--       fill = d)) + -->
+<!--   geom_tile() + -->
+<!--   coord_equal() + -->
+<!--   labs(x = "So Far Gone", y = "Thank Me Later", title = 'Best I Ever Had analysis') + -->
+<!--   theme_minimal() + -->
+<!--   scale_fill_viridis_c(guide = NULL) -->
+
+<!-- ``` -->
+
+<!-- --- -->
+<!-- The straighter the diagonal line, the more the pitches are similar. For songs that show no similarity, there is no diagonal line visible. Here similarity is shown from two identical songs, from different albums. Each album contains the same song 'Best I Ever Had'. Drake does not have any live performances recorded on Spotify, it would have been nice to see the difference between his studio recording and live performance. -->
