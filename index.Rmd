@@ -19,6 +19,7 @@ library(tidyverse)
 library(spotifyr)
 library (dplyr)
 library(shiny)
+library(plotly)
 library(compmus)
 ```
 
@@ -100,7 +101,7 @@ Albums{.storyboard}
 energy <-
   ggplot(albums, aes(x = energy, color = '#c8f7e7')) +
   geom_histogram(binwidth = 0.1) +
-  facet_wrap(~track.album.name, scales = "free_x") + theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) + labs(title = "Drake album energies")
+  facet_wrap(~track.album.name, scales = "free_x") + theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) + labs(title = "Album Energies")
 energy
 
 ```
@@ -109,13 +110,13 @@ energy
 
 The energy distribution over Drake's albums is shown in this plot. It is visible that his albums do not have a set energy distribution, it is quite varied. The albums 'Her Loss' and 'What A Time To Be Alive' seem to follow a balanced distribution, whereas 'Thank Me Later (Int'l Version)' has more of a build up of energies. 
 
-### Dancergy
+### More Dance or More Energy?
 
 ```{r dancergy, echo=FALSE, fig.show="hold", out.width="50%"}
 dancergy <-  
   ggplot(summaries, aes(x = mean_danceability, y = mean_energy, color = track.album.name)) + 
   geom_point() +scale_x_continuous(breaks=seq(0.5,0.8,0.05)) +
-  labs(x ='Average Danceability', y = 'Average Energy', title = 'Danceability of Drake albums and their energy',
+  labs(x ='Average Danceability', y = 'Average Energy', title = 'Danceability of Albums and their Energy',
        colour = "Albums") +
   theme(panel.background = element_rect(fill = "white", colour = NA,
                                         size = 2, linetype = "solid"),
@@ -148,14 +149,13 @@ thanklife <- albums %>%
   
 thanklife |> ggplot(aes(x=factor(key), fill=track.album.name, y = n, 
                                 text = paste("Number of Songs: ", n, "<br>",
-                                             "Percent Songs in Key: ", percent, "%")))+
+                                             "Percent Songs in Key: ", percent, "%")),show.legend = FALSE)+
   geom_bar(width=0.5, stat = "identity") +
-  scale_fill_manual(values=c('#00acdf', '#e35349'))+
+  scale_fill_manual(values=c('#83dfeb', '#e35349'))+
   labs(x="Key", y="Number of Songs") +
   guides(fill=guide_legend(title="Album"))+
   theme_minimal() +
   ggtitle("Musical Key Makeup by Album")  
-  
 ```
 
 ---
@@ -170,16 +170,17 @@ dance_alive<- albums %>%
   select(track.name, danceability) %>%
   arrange(danceability)
 
-ggplot(dance_alive,aes(x= track.name,y = danceability),) +
+dance_plot <- ggplot(dance_alive,aes(x= track.name,y = danceability),) +
   geom_bar(aes(fill = track.name),stat = 'identity',show.legend = FALSE) + 
   coord_flip() + theme_minimal() +
   labs(y ='Danceability', x = 'Track Name', title = 'Danceability of What A Time To Be Alive')
 
+ggplotly(dance_plot)
 ```
 
 ---
 
-Here the distribution of Drake's album What A Time To Be Alive is shown over the songs. The majority of the songs have a danceability of 0.7, with the exception of **Diamonds Dancing**. This song ranks the lowest on the danceability bar with a value of 0.5. 
+The album What A Time To Be Alive showed to have the highest danceability, therefore it would seem fit to see the danceability distribution over the songs found in the album. The all of the songs have a danceability over 0.7, with the exception of **Diamonds Dancing**. This song ranks the lowest on the danceability bar with a value of 0.5, which is ironic given the song title. 
 
 
 Songs{.storyboard}
