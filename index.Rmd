@@ -9,6 +9,7 @@ output:
     theme:
       version: 4
       bootswatch: minty
+    self_contained: false
     
 ---
 
@@ -43,6 +44,8 @@ summaries <- albums %>%
     )
 
 ```
+
+
 Introduction
 ===================
 
@@ -52,6 +55,8 @@ Backstory{data-width=750}
 <center> <h1>If You're Reading This, It's Not Too Late </h1>
 
 Welcome to my storyboard that will discuss some interesting highlights regarding Drake's albums and songs featured in them. Drake has reinvented himself many times. How has his style changed over time? I shall look at the audio features for each major album, and cluster them into distinct style periods. My chosen corpus consists of music by the Canadian rapper Drake. Drake has been one of my favourite artists for several years. He has has also consistently been my number one listened to artist, according to Spotify. The interesting thing about Drake is that he always bring out albums that are true to himself, but also releases music that is out of his comfort zone. Therefore, the comparison points in my corpus will be a select number of his albums and mixtapes. Drake is well-known for expressing his emotions in his music and I expect the results to project this as well. This means that some albums will concern the concept of love and heartbreak, while others would focus more on a bachelor lifestyle. In addition, I think that Drake makes bolder moves over the years regarding his rapping style and music genres he indulges himself in. I expect a lot of variance in the danceability, energy, speechiness and valence across the albums. Drake is also known for making a lot of hits. It will be interesting to find his most popular songs and see why they gained popularity and how they differ from one another. What are the requirements for Drake to make a hit?
+
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/0OUz3M510N4p6ATGFEdE6p?utm_source=generator&theme=0" width="80%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
 </center>
 
 Album names{data-width=250}
@@ -182,6 +187,7 @@ ggplotly(dance_plot)
 
 The album What A Time To Be Alive showed to have the highest danceability, therefore it would seem fit to see the danceability distribution over the songs found in the album. The all of the songs have a danceability over 0.7, with the exception of **Diamonds Dancing**. This song ranks the lowest on the danceability bar with a value of 0.5, which is ironic given the song title. 
 
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/2AGottAzfC8bHzF7kEJ3Wa?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
 
 Songs{.storyboard}
 ===================
