@@ -1,0 +1,681 @@
+---
+title: "Drake"
+author: "Khwezi Rasmussen"
+date: "2023-02-15"
+output:
+  flexdashboard::flex_dashboard:
+    storyboard: true
+    orientation: columns
+    theme:
+      version: 4
+      bootswatch: minty
+    self_contained: false
+    
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(spotifyr)
+library (dplyr)
+library(shiny)
+library(plotly)
+library(compmus)
+```
+
+
+```{r include = FALSE}
+Sys.setenv(SPOTIFY_CLIENT_ID='222b718afde2416ebfa1fd7a64fd9533')
+Sys.setenv(SPOTIFY_CLIENT_SECRET='9d69929e765449a98285f1b9fe10f380')
+access_token <- get_spotify_access_token()
+
+playlist_id <- '0OUz3M510N4p6ATGFEdE6p'
+albums <- get_playlist_audio_features('',playlist_id)
+```
+
+```{r variables, include = FALSE}
+summaries <- albums %>%
+  group_by(track.album.name) %>%
+  summarise(
+    mean_popularity = mean(track.popularity),
+    amount_popularity = sum(track.popularity),
+    mean_danceability = mean(danceability),
+    mean_energy = mean(energy),
+    mean_tempo = mean(tempo)
+    )
+
+```
+
+
+Introduction
+===================
+
+Backstory{data-width=750}
+-------------------
+
+<center> <h1>If You're Reading This, It's Not Too Late </h1>
+
+Welcome to my storyboard that will discuss some interesting highlights regarding Drake's albums and songs featured in them. Drake has reinvented himself many times. How has his style changed over time? I shall look at the audio features for each major album, and cluster them into distinct style periods. My chosen corpus consists of music by the Canadian rapper Drake. Drake has been one of my favourite artists for several years. He has has also consistently been my number one listened to artist, according to Spotify. The interesting thing about Drake is that he always bring out albums that are true to himself, but also releases music that is out of his comfort zone. Therefore, the comparison points in my corpus will be a select number of his albums and mixtapes. Drake is well-known for expressing his emotions in his music and I expect the results to project this as well. This means that some albums will concern the concept of love and heartbreak, while others would focus more on a bachelor lifestyle. In addition, I think that Drake makes bolder moves over the years regarding his rapping style and music genres he indulges himself in. I expect a lot of variance in the danceability, energy, speechiness and valence across the albums. Drake is also known for making a lot of hits. It will be interesting to find his most popular songs and see why they gained popularity and how they differ from one another. What are the requirements for Drake to make a hit?
+
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/0OUz3M510N4p6ATGFEdE6p?utm_source=generator&theme=0" width="80%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+</center>
+
+Album names{data-width=250}
+-------------------
+<center> 
+<h1>Albums</h1>
+
+Care Package
+
+Certified Lover Boy
+
+Dark Lane Demo Tapes
+
+Her Loss
+
+Honestly, Nevermind
+
+If You're Reading This It's Too Late
+
+More Life
+
+Nothing Was The Same (Deluxe)
+
+Scorpion
+
+So Far Gone
+
+Take Care (Deluxe)
+
+Thank Me Later (Int'l Version)
+
+Views
+
+What A Time To Be Alive
+
+</center>
+
+
+
+Albums{.storyboard}
+===================
+
+
+### Energy
+
+```{r energy, echo=FALSE}
+energy <-
+  ggplot(albums, aes(x = energy, color = '#c8f7e7')) +
+  geom_histogram(binwidth = 0.1) +
+  facet_wrap(~track.album.name, scales = "free_x") + theme(legend.position = "none", plot.title = element_text(hjust = 0.5), panel.spacing = unit(1, "lines")) + labs(title = "Album Energies") +
+  xlim(0, 1)
+energy
+
+```
+
+---
+
+The energy distribution over Drake's albums is shown in this plot. It is visible that his albums do not have a set energy distribution, it is quite varied. The albums 'Her Loss' and 'What A Time To Be Alive' seem to follow a balanced distribution, whereas 'Thank Me Later (Int'l Version)' has more of a build up of energies. 
+
+### More Dance or More Energy?
+
+```{r dancergy, echo=FALSE, fig.show="hold", out.width="50%"}
+dancergy <-  
+  ggplot(summaries, aes(x = mean_danceability, y = mean_energy, color = track.album.name)) + 
+  geom_point() +scale_x_continuous(breaks=seq(0.5,0.8,0.05)) +
+  labs(x ='Average Danceability', y = 'Average Energy', title = 'Danceability of Albums and their Energy',
+       colour = "Albums") +
+  theme(panel.background = element_rect(fill = "white", colour = NA,
+                                        size = 2, linetype = "solid"),
+        panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                        colour = "#E6E6EA"),
+        legend.key = element_rect(fill = NA, color = NA))
+
+dancergy + geom_smooth(aes(group=1), color = "#E6E6EA", fill = NA, size = .4)
+
+```
+
+---
+
+This plot shows the computed average danceability and the average energy. The general trend of this plot is that albums with a higher average energy tend to have a lower average danceability. The lower energy songs tend to have a higher daneceability. It is interesting to see that a single outlier for this would be the **Take Care** album. This album in particular contains the lowest average energy and the lowest average danceability. The album **Thank Me Later** has the highest average energy and has the lowest average danceability. **More Life** on the other hand has the lowest average energy and one of the highest average danceability. The majority of Drake's albums seem to have an average danceability between 0.6 and 0.75, with their computed average energy ranging from 0.5 to 0.6.
+
+
+### More Life vs Thank Me Later
+```{r thanklife, echo = FALSE}
+
+thanklife <- albums %>%
+  select(track.album.name, key)%>%
+  group_by(track.album.name, key)%>%
+  filter(track.album.name %in% c("Thank Me Later (Int'l Version)", "More Life")) %>%
+  mutate(n=n())%>%
+  unique()%>%
+  group_by(key)%>%
+  mutate(total=sum(n))%>%
+  mutate(percent=round((n/total)*100))
+
+  
+thanklife |> ggplot(aes(x=factor(key), fill=track.album.name, y = n, 
+                                text = paste("Number of Songs: ", n, "<br>",
+                                             "Percent Songs in Key: ", percent, "%")),show.legend = FALSE)+
+  geom_bar(width=0.5, stat = "identity") +
+  scale_fill_manual(values=c('#83dfeb', '#e35349'))+
+  labs(x="Key", y="Number of Songs") +
+  guides(fill=guide_legend(title="Album"))+
+  theme_minimal() +
+  ggtitle("Musical Key Makeup by Album")  +
+  # rename keys
+  scale_x_discrete(labels=c('C','C#/Db','D','D#/Eb','E','F','F#/Gb','G','G#/Ab','A','A#/Bb','B'))
+
+```
+
+---
+
+The previous plot showed us that Thank Me Later is the album with the highest energy and lowest danceability, whereas the album with the lowest energy and a high danceability is More Life. This plot shows the distribution of keys between these two extreme albums. It is visible that More Life makes use of all the keys found in a pitch class. Thank Me Later on the other hand mainly uses the keys in the range of 6 to 9. What is noticable is that most of the More Life songs are in keys 1, 7 and 11. Keys 1 and 11 specifically are not to me found in Take Me Later. 
+
+### What A Time To Be Alive
+
+```{r dancealive, echo=FALSE}
+dance_alive<- albums %>%
+  filter(track.album.name == 'What A Time To Be Alive') %>%
+  select(track.name, danceability) %>%
+  arrange(danceability)
+
+dance_plot <- ggplot(dance_alive,aes(x= track.name,y = danceability),) +
+  geom_bar(aes(fill = track.name),stat = 'identity',show.legend = FALSE) + 
+  coord_flip() + theme_minimal() +
+  labs(y ='Danceability', x = 'Track Name', title = 'Danceability of What A Time To Be Alive')
+
+ggplotly(dance_plot)
+```
+
+---
+
+The album What A Time To Be Alive showed to have the highest danceability, therefore it would seem fit to see the danceability distribution over the songs found in the album. The all of the songs have a danceability over 0.7, with the exception of **Diamonds Dancing**. This song ranks the lowest on the danceability bar with a value of 0.5, which is ironic given the song title. 
+
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/2AGottAzfC8bHzF7kEJ3Wa?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
+### Scorpion vs If You're Reading This It's Too Late
+
+```{r scorpitoo, echo=FALSE}
+# album comparison track level summaries 
+
+# filter for scorpion and iyrtitl
+late_scorpion <- albums%>%
+  filter(track.album.name %in% c('Scorpion', "If You're Reading This It's Too Late")) |>
+  add_audio_analysis()
+
+# non-vectorized features: summary statistics
+scorpi <- late_scorpion |>
+  mutate(
+    sections =
+      map(
+        sections, # sections or segments
+        summarise_at,
+        vars(tempo, loudness, duration), # features of interest
+        list(section_mean = mean, section_sd = sd) # aggregation functions
+      )
+  ) |>
+  unnest(sections) 
+
+scorpiplot <-
+  ggplot(scorpi,
+         aes(
+           x = tempo,
+           y = tempo_section_sd,
+           colour = track.album.name,
+           alpha = factor(loudness),
+           text = paste('tempo: ', tempo,
+                        '<br>tempo sd:', tempo_section_sd, 
+                        '<br>album:', track.album.name,
+                        # '<br>loudness:', factor(loudness),
+                        '<br>track name:', track.name)
+         )
+  ) +
+  geom_point(aes(size = duration / 60)) +
+  geom_rug() +
+  theme_minimal() +
+  scale_alpha_manual(values=seq(0, 1, length.out = length(scorpi)))+
+  theme(legend.position = "none")+
+  ylim(0, 5) +
+  labs(
+    x = "Mean Tempo (bpm)",
+    y = "SD Tempo",
+    colour = "track.album.name",
+    size = "Duration (min)",
+    alpha = "Volume (dBFS)"
+  )
+
+ggplotly(scorpiplot, tooltip = "text")
+```
+
+***
+
+The following visualisation shows us the difference in standard deviations of tempo and means of tempo. The comparison is between the albums Scorpion and If You're Reading This, It's Too Late (IYRTITL). These albums were chosen, because they both vary quite a bit in tempo. This also reflects in the visualisation. For both albums we see songs majorly having low standard deviations. Scorpion seems to have more songs with a higher mean tempo, yet the difference in the amount of songs with a lower mean tempo is not drastic. 
+Scoropion seems to generally have 4 minute long songs. There are 4 songs that are about 3 minutes long. Two of these have a low mean tempo, one has a mean tempo around 130 bpm and the last one has a high mean tempo at 175 bpm. Other than that, the songs are spread out over the mean tempo, as expected. IYRTITL seemingly has more long songs than Scorpion does. The shorter songs also seem to be a bit more spread out with regards to standard deviation. There is one particular outlier that has a very high standard deviation and high mean tempo. This outlier also happens to score the lowest on loudness.  A similarity between these two albums would be that the longer songs tend to have a higher standard devation in tempo. Also, for both albums the full range of mean tempo is used. There isn't a set tempo for each album, which results in a lot of variety across the albums. 
+
+
+### Take Care vs Care Package
+```{r care, echo=FALSE}
+#take care and care package
+take_care <-
+  get_playlist_audio_features("",
+                              "0OUz3M510N4p6ATGFEdE6p"
+  ) |>
+  slice(181:199) |>
+  add_audio_analysis()
+# scorpion
+care_package <-
+  get_playlist_audio_features(
+    "",
+    "0OUz3M510N4p6ATGFEdE6p"
+  ) |>
+  slice(1:17) |>
+  add_audio_analysis()
+# merge
+care <-
+  take_care |>
+  mutate(genre = "Take Care") |>
+  bind_rows(care_package |> mutate(genre = "Care Package"))
+
+
+# vectorized features: chroma, timbre
+care |>
+  mutate(
+    timbre =
+      map(
+        segments,
+        compmus_summarise,
+        timbre,
+        method = "mean"
+      )
+  ) |>
+  select(genre, timbre) |>
+  compmus_gather_timbre() |>
+  ggplot(aes(x = basis, y = value, fill = genre)) +
+  geom_violin() +
+  scale_fill_viridis_d() +
+  labs(x = "Spotify Timbre Coefficients", y = "", fill = "Genre")
+
+
+
+```
+
+***
+
+Care Package and Take Care are two of Drake's older albums. Despite Care Package being released in recent years, it contains older songs by Drake from around the same time as Take Care. These songs range from 2010 and 2016. Take Care was released in 2011. Both albums have similar old school Drake vibes, which you don't find in his more recent albums. These violin plots shows that timbre coefficient 5 seems to be able to distinghuish the difference between the albums the best. 
+
+### Tempo
+
+```{r mean_tempo, echo=FALSE}
+mean_tempoes <- summaries|>
+  select(track.album.name, mean_tempo) %>%
+  arrange(mean_tempo) |>
+  ggplot(aes(mean_tempo)) +
+  geom_histogram(bins = 30, color = 'white', fill = 'turquoise') +
+  labs(y ='Count', x = 'Mean Tempo (in BPM)', title = 'Mean tempo over the albums') + scale_y_continuous(breaks=c(0,1,2)) + 
+  theme_minimal()
+ggplotly(mean_tempoes)
+
+```
+
+```{r mean_tempo_albums, echo=FALSE}
+temp_plot <- summaries|>
+  select(track.album.name, mean_tempo) %>%
+  arrange(mean_tempo) |>
+  ggplot(aes(x= track.album.name,y = mean_tempo)) +
+  geom_bar(aes(fill = track.album.name),stat = 'identity', show.legend = FALSE) + 
+  coord_flip() + theme_minimal() +
+  labs(y ='Mean Tempo', x = 'Album Name', title = 'Mean tempo over the albums')
+
+ggplotly(temp_plot)
+```
+
+***
+The histogram shown here gives us the average tempoes of each of Drake's albums and their counts. The lowest tempo seems to be 111 bpm, which the bar plot shows to be the album Nothing Was The Same. This makes sense, as this is one of Drake's most successful hip hop album. Hip hop music tends to be in the range of 80-100 bpm. The genre that comes after this is house, which starts from 115 bpm. Drake using a bpm outside the typical range for a hip hop album, could have played a major part in the success of his album. Next, there are two outliers from the mean tempoes. Both albums have a high average bpm of around 140 bpm. These albums are Take Care and What A Time To Be Alive. A bpm of 140 corresponds to the rap genre, which ranges between 85-140 bpm. The latter album was a collaboration Drake did with the rapper Future. The average bpm here was 139. It would make sense for two rap artist to have an album together that would mainly consist of high bpm rap music. Take Care closely follows with a bpm of 138. It seems that the most common bpms are 114, 120 and 123, but the albums generally range closely between 111-123 bpm.
+
+Songs{.storyboard}
+===================
+
+
+### Madiba Riddim
+
+```{r madiba, echo=FALSE}
+madiba <-
+  get_tidy_audio_analysis("76gUmNLXGQVOsGhfcshkFP") |>
+  select(segments) |>
+  unnest(segments) |>
+  select(start, duration, pitches)
+
+madiba |>
+  # norm for the chroma vectors
+  mutate(pitches = map(pitches, compmus_normalise, "chebyshev")) |>
+  #convert data to long format
+  compmus_gather_chroma() |> 
+  ggplot(aes(
+    x = start + duration / 2,
+    width = duration,
+    y = pitch_class,
+    fill = value)) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  theme_minimal() +
+  scale_fill_viridis_c()
+
+```
+
+---
+A chromagram represents the time against the pitch classes. It shows the measurement of the energy per pitch class. This chromagram shows the analysis of Drake's Madiba Riddim. This song is one of Drake's more instrumental songs, as the beat mainly consists of a guitar. The normalisation vector used here was chebyshev. The choice for this is simple: because Spotify also does so. In my opinion it is better to keep the method of analysis as close to Spotify's handling as possible. What is clear from this visualisation is that the C#/Db note is strongly found throughout the majority of the song. C and F#/Gb also show significant presence in the song. The G note shows slight presence in a few sections of the song. Three parts particularly: around 0-50s, 75-100s and 130-150s. The A#/Bb note together with the B note are hardly detected. The rest of the notes are lightly spread through the song.
+
+### Best I Ever Had
+
+```{r best, echo=FALSE}
+
+
+# from album 'so far gone'
+best_i_ever_had_sfg <-
+  get_tidy_audio_analysis("3QLjDkgLh9AOEHlhQtDuhs") |>
+  select(segments) |>
+  unnest(segments) |>
+  select(start, duration, pitches)
+
+# from album 'thank me later
+best_i_ever_had_tml <-
+  get_tidy_audio_analysis("1GxHeBvQ9935Dd3cSfsfBa") |>
+  select(segments) |>
+  unnest(segments) |>
+  select(start, duration, pitches)
+
+compmus_long_distance(
+  best_i_ever_had_sfg |> mutate(pitches = map(pitches, compmus_normalise, "chebyshev")),
+  best_i_ever_had_tml |> mutate(pitches = map(pitches, compmus_normalise, "chebyshev")),
+  feature = pitches,
+  method = "euclidean"
+) |>
+  ggplot(
+    aes(
+      x = xstart + xduration / 2,
+      width = xduration,
+      y = ystart + yduration / 2,
+      height = yduration,
+      fill = d)) +
+  geom_tile() +
+  coord_equal() +
+  labs(x = "So Far Gone", y = "Thank Me Later", title = 'Best I Ever Had Album Comparison') +
+  theme_minimal() +
+  scale_fill_viridis_c(guide = NULL)
+
+```
+
+***
+The straighter the diagonal line in the dynamic time warp, the more the pitches are similar. For songs that show no similarity, there is no diagonal line visible. Here similarity is shown from two same titled songs, from different albums. Each album contains the same song name: Best I Ever Had. The line found in the plot is straight, meaning that the songs are the same. Drake unfortunately does not have any live performances recorded on Spotify. It would have been nice to see the difference between his studio recording and live performance.
+
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/3QLjDkgLh9AOEHlhQtDuhs?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
+
+### Glow
+
+```{r glow, echo=FALSE}
+
+# cepstrogram of glow
+glow <-
+  get_tidy_audio_analysis("28irpKCCK9nn9DZSik2zEx") |> # Change URI.
+  compmus_align(sections, segments) |>                     # Change `bars`
+  select(sections) |>                                      #   in all three
+  unnest(sections) |>                                      #   of these lines.
+  mutate(
+    pitches =
+      map(segments,
+          compmus_summarise, pitches,
+          method = "max", norm = "chebyshev"              # Change summary & norm.
+      )
+  ) |>
+  mutate(
+    timbre =
+      map(segments,
+          compmus_summarise, timbre,
+          method = "max", norm = "chebyshev"              # Change summary & norm.
+      )
+  )
+
+glow |>
+  compmus_gather_timbre() |>
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = basis,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude", title = 'Cepstrogram of the sections in Glow') +
+  scale_fill_viridis_c() +                              
+  theme_classic()
+
+
+```
+
+***
+Not all songs in the corpus use the same consistent melody or beat. Some songs contain completely different parts, whether that be a distinct introduction or outro of a song. One of these songs is Glow. In this song there is a big beat switch in the section from around 150s. The components c04 and c06-c12 in the cepstrogram capture this beat switch well, as there is a change in magnitude from this point. Component c04 specifically has had a consistent magnitude of 1.0 throughout the song, up until the switch. 
+
+### Diamonds Dancing
+
+```{r dd_selfsim, echo=FALSE}
+
+# self sim matrix dd
+dd <-
+  get_tidy_audio_analysis("2AGottAzfC8bHzF7kEJ3Wa") |> # Change URI.
+  compmus_align(sections, segments) |>                     # Change `bars`
+  select(sections) |>                                      #   in all three
+  unnest(sections) |>                                      #   of these lines.
+  mutate(
+    pitches =
+      map(segments,
+          compmus_summarise, pitches,
+          method = "max", norm = "chebyshev"              # Change summary & norm.
+      )
+  ) |>
+  mutate(
+    timbre =
+      map(segments,
+          compmus_summarise, timbre,
+          method = "max", norm = "chebyshev"              # Change summary & norm.
+      )
+  )
+
+
+dd |>
+  compmus_self_similarity(timbre, "cosine") |> 
+  ggplot(
+    aes(
+      x = xstart + xduration / 2,
+      width = xduration,
+      y = ystart + yduration / 2,
+      height = yduration,
+      fill = d
+    )
+  ) +
+  geom_tile() +
+  coord_fixed() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_classic() +
+  labs(x = "", y = "", title = "Self similarity matrix of sections in Diamonds Dancing")
+
+
+```
+
+***
+Diamonds Dancing was the outlier of the album What A Time To Be Alive, in terms of danceability.
+
+### Get It Together
+
+```{r get_it_together, echo=FALSE}
+
+# chordogram get it together
+circshift <- function(v, n) {
+  if (n == 0) v else c(tail(v, n), head(v, -n))
+}
+
+#      C     C#    D     Eb    E     F     F#    G     Ab    A     Bb    B
+major_chord <-
+  c(   1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    0,    0)
+minor_chord <-
+  c(   1,    0,    0,    1,    0,    0,    0,    1,    0,    0,    0,    0)
+seventh_chord <-
+  c(   1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    1,    0)
+
+major_key <-
+  c(6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
+minor_key <-
+  c(6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
+
+chord_templates <-
+  tribble(
+    ~name, ~template,
+    "Gb:7", circshift(seventh_chord, 6),
+    "Gb:maj", circshift(major_chord, 6),
+    "Bb:min", circshift(minor_chord, 10),
+    "Db:maj", circshift(major_chord, 1),
+    "F:min", circshift(minor_chord, 5),
+    "Ab:7", circshift(seventh_chord, 8),
+    "Ab:maj", circshift(major_chord, 8),
+    "C:min", circshift(minor_chord, 0),
+    "Eb:7", circshift(seventh_chord, 3),
+    "Eb:maj", circshift(major_chord, 3),
+    "G:min", circshift(minor_chord, 7),
+    "Bb:7", circshift(seventh_chord, 10),
+    "Bb:maj", circshift(major_chord, 10),
+    "D:min", circshift(minor_chord, 2),
+    "F:7", circshift(seventh_chord, 5),
+    "F:maj", circshift(major_chord, 5),
+    "A:min", circshift(minor_chord, 9),
+    "C:7", circshift(seventh_chord, 0),
+    "C:maj", circshift(major_chord, 0),
+    "E:min", circshift(minor_chord, 4),
+    "G:7", circshift(seventh_chord, 7),
+    "G:maj", circshift(major_chord, 7),
+    "B:min", circshift(minor_chord, 11),
+    "D:7", circshift(seventh_chord, 2),
+    "D:maj", circshift(major_chord, 2),
+    "F#:min", circshift(minor_chord, 6),
+    "A:7", circshift(seventh_chord, 9),
+    "A:maj", circshift(major_chord, 9),
+    "C#:min", circshift(minor_chord, 1),
+    "E:7", circshift(seventh_chord, 4),
+    "E:maj", circshift(major_chord, 4),
+    "G#:min", circshift(minor_chord, 8),
+    "B:7", circshift(seventh_chord, 11),
+    "B:maj", circshift(major_chord, 11),
+    "D#:min", circshift(minor_chord, 3)
+  )
+
+key_templates <-
+  tribble(
+    ~name, ~template,
+    "Gb:maj", circshift(major_key, 6),
+    "Bb:min", circshift(minor_key, 10),
+    "Db:maj", circshift(major_key, 1),
+    "F:min", circshift(minor_key, 5),
+    "Ab:maj", circshift(major_key, 8),
+    "C:min", circshift(minor_key, 0),
+    "Eb:maj", circshift(major_key, 3),
+    "G:min", circshift(minor_key, 7),
+    "Bb:maj", circshift(major_key, 10),
+    "D:min", circshift(minor_key, 2),
+    "F:maj", circshift(major_key, 5),
+    "A:min", circshift(minor_key, 9),
+    "C:maj", circshift(major_key, 0),
+    "E:min", circshift(minor_key, 4),
+    "G:maj", circshift(major_key, 7),
+    "B:min", circshift(minor_key, 11),
+    "D:maj", circshift(major_key, 2),
+    "F#:min", circshift(minor_key, 6),
+    "A:maj", circshift(major_key, 9),
+    "C#:min", circshift(minor_key, 1),
+    "E:maj", circshift(major_key, 4),
+    "G#:min", circshift(minor_key, 8),
+    "B:maj", circshift(major_key, 11),
+    "D#:min", circshift(minor_key, 3)
+  )
+
+get_it_together <-
+  get_tidy_audio_analysis("7y6c07pgjZvtHI9kuMVqk1") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+          compmus_summarise, pitches,
+          method = "mean", norm = "manhattan"
+      )
+  )
+
+get_it_together |> 
+  compmus_match_pitch_template(
+    key_templates,         # Change to chord_templates if descired
+    method = "euclidean",  # Try different distance metrics
+    norm = "manhattan"     # Try different norms
+  ) |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "", title = "Chordogram of Get It Together")
+
+
+```
+
+***
+
+The following plot is a chordogram, which shows us the chords found in a song. Drake's Get It Together is a melodious song, for which chords can easily be found within. The chordogram shows presence a strong presence of C# minor from 80s-200s. Within this period there is an F minor from 100s-180s. C# minor relatively behaves the same as C minor, but slightly weaker than C minor. The last part from 230s shows a repeat of F minor. 
+
+### Summer's Over Interlude
+
+```{r summers_over, echo=FALSE}
+
+get_tidy_audio_analysis("3ppVO2tyWRRznNmONvt7Se") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+          compmus_summarise, pitches,
+          method = "mean", norm = "manhattan"
+      )
+  ) |> 
+  compmus_match_pitch_template(chord_templates, "euclidean", "manhattan") |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "", title = "Chordogram of Summer's Over Interlude")
+
+```
+
+***
+
+### Flight's Booked
+
+```{r flights_booked, echo=FALSE}
+flight <- get_tidy_audio_analysis("6Yj7Zhxt73uvwFFvzQXdxO")
+flight |>
+  tempogram(window_size = 8, hop_size = 1, cyclic = TRUE) |>
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)", title = "Flight's Booked Tempogram ") +
+  theme_classic()
+
+```
+
+***
+
+Flight's Booked generally has a tempo slightly higher than 120 BPM. When listening to the song, you should notice that at around 65s there is a small drop in tempo. This is also reflected in the tempogram, as you can see the downward shift of tempo. The same thing happens again at around 125s, which is also visible in the tempogram. The section from 140s-150s you can hear that Drake changes some tones, which could be the cause of the tempogram to fluctuate like that.
+
